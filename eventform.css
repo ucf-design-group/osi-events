@@ -1,0 +1,35 @@
+#oe-form-main {
+	float: left;
+	margin-right: 50px;
+	width: 200px;
+}
+#oe-form-main th, #oe-form-secondary th {
+	text-align: left;
+}
+#oe-form-startdate, #oe-form-enddate {
+	width: 100px;
+}
+#oe-form-starttime, #oe-form-endtime {
+	width: 50px;
+}
+#oe-form-datelabel {
+	padding-left: 5px;
+}
+#oe-form-loc, #oe-form-contact, #oe-form-url {
+	width: 100%;
+}
+
+#oe-form-secondary {
+	float: left;
+	width: 50%;
+	min-width: 300px;
+}
+#oe-form-notes {
+	height: 80px;
+	width: 100%;
+}
+
+
+#oe-form-clear {
+	clear: both;
+}

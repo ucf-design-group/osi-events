@@ -13,7 +13,7 @@ date_default_timezone_set('America/New_York');
 
 function oe_cpt() {
 
-	register_post_type('events', array(
+	register_post_type('osi-events', array(
 		'labels' => array(
 			'name' => 'Events',
 			'singular_name' => 'Event'),
@@ -46,18 +46,23 @@ function oe_meta_add() {
 		'oe_meta',
 		'Event Information',
 		'oe_meta',
-		'events',
+		'osi-events',
 		'normal',
 		'default');
 }
 
 function oe_meta() {
+
 	global $post;
 	wp_nonce_field(basename( __FILE__ ), 'oe_meta_nonce' );
-	$start = get_post_meta($post->ID, 'oe-meta-start', true) ? get_post_meta($post->ID, 'oe-meta-start', true) : time();
-	$end = get_post_meta($post->ID, 'oe-meta-end', true) ? get_post_meta($post->ID, 'oe-meta-end', true) : time();
-	$loc = get_post_meta($post->ID, 'oe-meta-loc', true) ? get_post_meta($post->ID, 'oe-meta-loc', true) : '';
+	$start = get_post_meta($post->ID, 'oe-form-start', true) ? get_post_meta($post->ID, 'oe-form-start', true) : time();
+	$end = get_post_meta($post->ID, 'oe-form-end', true) ? get_post_meta($post->ID, 'oe-form-end', true) : time();
+	$loc = get_post_meta($post->ID, 'oe-form-loc', true) ? get_post_meta($post->ID, 'oe-form-loc', true) : '';
+	$contact = get_post_meta($post->ID, 'oe-form-contact', true) ? get_post_meta($post->ID, 'oe-form-contact', true) : '';
+	$url = get_post_meta($post->ID, 'oe-form-url', true) ? get_post_meta($post->ID, 'oe-form-url', true) : '';
+	$notes = get_post_meta($post->ID, 'oe-form-notes', true) ? get_post_meta($post->ID, 'oe-form-notes', true) : '';
 	
+
 	$checked = "checked = 'checked'";
 	$disabled = "";
 	$style = "";
@@ -70,35 +75,57 @@ function oe_meta() {
 
 	?>
 	<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="<?php echo plugins_url("osi-events/eventform.css") ?>">
 	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/jquery-ui.min.js"></script>
 	<script type='text/javascript' src='<?php echo plugins_url("osi-events/eventform.js") ?>'></script>
-	<table>
-	<tr>
-		<th><label for="oe-form-startdate">Start:</label></th>
-		<td><input type="text" name="oe-form-startdate" id="oe-form-startdate" value="<?php echo date('Y-m-d', $start);?>" size="9" onchange='startDateCheck()' /></td>
-		<td><input type="text" name="oe-form-starttime" id="oe-form-starttime" value="<?php echo date('g:00', $start);?>" size="3" onchange='startTimeCheck()' />
-			<select name='oe-form-startampm' id='oe-form-startampm'>
-				<option value='am' <?php if(date('a', $start) == 'am') echo 'selected="selected"'?>>am</option>
-				<option value='pm' <?php if(date('a', $start) == 'pm') echo 'selected="selected"'?>>pm</option>
-			</select>
-		</td>
-	</tr><tr>
-		<th><label for="oe-form-enddate">End:</label></th>
-		<td><input type="text" name="oe-form-enddate" id="oe-form-enddate" value="<?php echo date('Y-m-d', $end);?>" <?php echo $style.' '.$disabled; ?> size="9" onchange='endDateCheck()' /></td>
-		<td><input type="text" name="oe-form-endtime" id="oe-form-endtime" value="<?php echo date('g:00', $end);?>" <?php echo $style.' '.$disabled; ?> size="3" />
-			<select name='oe-form-endampm' id='oe-form-endampm' <?php echo $style.' '.$disabled; ?>>
-				<option value='am' <?php if(date('a', $end) == 'am') echo 'selected="selected"'?>>am</option>
-				<option value='pm' <?php if(date('a', $end) == 'pm') echo 'selected="selected"'?>>pm</option>
-			</select>
-		</td>
-	</tr><tr>
-		<td></td>
-		<td colspan='2'><input type='checkbox' name='oe-form-endcheck' id='oe-form-endcheck' value='use' <?php echo $checked; ?> onchange='endCheckBox()' /><span> Use End Time</span></td>
-	</tr><tr>
-		<th>Where:</th>
-		<td colspan='2'><input type="text" name="oe-form-loc" id="oe-form-loc" value="<?php echo $loc; ?>" size="30" /></td>
-	</tr>
+	<table id="oe-form-main">
+		<tr>
+			<th><label for="oe-form-startdate">Start:</label></th>
+			<td><input type="text" name="oe-form-startdate" id="oe-form-startdate" value="<?php echo date('Y-m-d', $start);?>" onchange='startDateCheck()' /></td>
+			<td><input type="text" name="oe-form-starttime" id="oe-form-starttime" value="<?php echo date('g:00', $start);?>" onchange='startTimeCheck()' /></td>
+			<td><select name='oe-form-startampm' id='oe-form-startampm'>
+					<option value='am' <?php if(date('a', $start) == 'am') echo 'selected="selected"'?>>am</option>
+					<option value='pm' <?php if(date('a', $start) == 'pm') echo 'selected="selected"'?>>pm</option>
+				</select>
+			</td>
+		</tr><tr>
+			<td></td>
+			<td id="oe-form-datelabel"><em> <?php echo date('Y-m-d', $start);?></em></td>
+			<td colspan="2"><em> <?php echo date('g', $start) . " or " . date('g:i', $start);?></em></td>
+		</tr><tr>
+			<th><label for="oe-form-enddate">End:</label></th>
+			<td><input type="text" name="oe-form-enddate" id="oe-form-enddate" value="<?php echo date('Y-m-d', $end);?>" <?php echo $style.' '.$disabled; ?> onchange='endDateCheck()' /></td>
+			<td><input type="text" name="oe-form-endtime" id="oe-form-endtime" value="<?php echo date('g:00', $end);?>" <?php echo $style.' '.$disabled; ?> /></td>
+			<td><select name='oe-form-endampm' id='oe-form-endampm' <?php echo $style.' '.$disabled; ?>>
+					<option value='am' <?php if(date('a', $end) == 'am') echo 'selected="selected"'?>>am</option>
+					<option value='pm' <?php if(date('a', $end) == 'pm') echo 'selected="selected"'?>>pm</option>
+				</select>
+			</td>
+		</tr><tr>
+			<td></td>
+			<td colspan='3'><input type='checkbox' name='oe-form-endcheck' id='oe-form-endcheck' value='use' <?php echo $checked; ?> onchange='endCheckBox()' /><span> Use End Time</span></td>
+		</tr><tr>
+			<th colspan='4'><label for="oe-form-loc">Location:</label></th>
+		</tr><tr>
+			<td colspan='4'><input type="text" name="oe-form-loc" id="oe-form-loc" value="<?php echo $loc; ?>" /></td>
+		</tr><tr>
+			<th colspan='4'><label for="oe-form-contact">E-Mail Contact (optional):</label></th>
+		</tr><tr>
+			<td colspan='4'><input type="text" name="oe-form-contact" id="oe-form-contact" value="<?php echo $contact; ?>" /></td>
+		</tr>
 	</table>
+	<table id="oe-form-secondary">
+		<tr>
+			<th><label for="oe-form-url">URL for More Info (optional):</label></th>
+		</tr><tr>
+			<td><input type="text" name="oe-form-url" id="oe-form-url" value="<?php echo $url; ?>" /></td>
+		</tr><tr>
+			<th><label for="oe-form-notes">Important Notes (optional):</label></th>
+		</tr><tr>
+			<td><textarea name="oe-form-notes" id="oe-form-notes"><?php echo $notes; ?></textarea></td>
+		</tr>
+	</table>
+	<div id="oe-form-clear"></div>
 	<?php
 }
 
@@ -115,54 +142,35 @@ function oe_meta_save() {
 		return $post->ID;
 	}
 
-	$new_start = strtotime((isset($_POST['oe-meta-startdate']) ? $_POST['oe-meta-startdate'] : '') . 
-		' ' . (isset($_POST['oe-meta-starttime']) ? $_POST['oe-meta-starttime'] : '') . 
-		' ' . (isset($_POST['oe-meta-startampm']) ? $_POST['oe-meta-startampm'] : ''));
+	$input = array();
+
+	$input['start'] = strtotime((isset($_POST['oe-form-startdate']) ? $_POST['oe-form-startdate'] : '') . 
+		' ' . (isset($_POST['oe-form-starttime']) ? $_POST['oe-form-starttime'] : '') . 
+		' ' . (isset($_POST['oe-form-startampm']) ? $_POST['oe-form-startampm'] : '') . " America/New_York");
 	
 	if (isset($_POST['oe-form-endcheck']) && $_POST['oe-form-endcheck'] == 'use') {
-		$new_end = strtotime((isset($_POST['oe-form-enddate']) ? $_POST['oe-form-enddate'] : '') . 
+		$input['end']= strtotime((isset($_POST['oe-form-enddate']) ? $_POST['oe-form-enddate'] : '') . 
 			' ' . (isset($_POST['oe-form-endtime']) ? $_POST['oe-form-endtime'] : '') . 
-			' ' . (isset($_POST['oe-form-endampm']) ? $_POST['oe-form-endampm'] : ''));
+			' ' . (isset($_POST['oe-form-endampm']) ? $_POST['oe-form-endampm'] : '') . " America/New_York");
 	}
 	else {
-		$new_end = 'none';
+		$input['end'] = 'none';
 	}
 
-	$new_loc = (isset($_POST['oe-meta-loc']) ? $_POST['oe-meta-loc'] : '');
-	$new_cat = isset($_POST['oe-meta-cat']) ? $_POST['oe-meta-cat'] : '';
+	$input['loc'] = (isset($_POST['oe-form-loc']) ? $_POST['oe-form-loc'] : '');
+	$input['contact'] = (isset($_POST['oe-form-contact']) ? $_POST['oe-form-contact'] : '');
+	$input['url'] = (isset($_POST['oe-form-url']) ? $_POST['oe-form-url'] : '');
+	$input['notes'] = (isset($_POST['oe-form-notes']) ? $_POST['oe-form-notes'] : '');
 
-	$old_start = get_post_meta($post_id, 'oe-meta-start', true);
-	$old_end = get_post_meta($post_id, 'oe-meta-end', true);
-	$old_loc = get_post_meta($post_id, 'oe-meta-loc', true);
-	$old_cat = get_post_meta($post_id, 'oe-meta-cat', true);
-
-	if ($new_start && '' == $old_start)
-		add_post_meta($post_id, 'oe-meta-start', $new_start, true );
-	else if ($new_start && $new_start != $old_start)
-		update_post_meta($post_id, 'oe-meta-start', $new_start);
-	else if ('' == $new_start && $old_start)
-		delete_post_meta($post_id, 'oe-meta-start', $old_start);
-
-	if ($new_end && '' == $old_end)
-		add_post_meta($post_id, 'oe-meta-end', $new_end, true );
-	else if ($new_end && $new_end != $old_end)
-		update_post_meta($post_id, 'oe-meta-end', $new_end);
-	else if ('' == $new_end && $old_end)
-		delete_post_meta($post_id, 'oe-meta-end', $old_end);
-
-	if ($new_loc && '' == $old_loc)
-		add_post_meta($post_id, 'oe-meta-loc', $new_loc, true );
-	else if ($new_loc && $new_loc != $old_loc)
-		update_post_meta($post_id, 'oe-meta-loc', $new_loc);
-	else if ('' == $new_loc && $old_loc)
-		delete_post_meta($post_id, 'oe-meta-loc', $old_loc);
-
-	if ($new_cat && '' == $old_cat)
-		add_post_meta($post_id, 'oe-meta-cat', $new_cat, true );
-	else if ($new_cat && $new_cat != $old_cat)
-		update_post_meta($post_id, 'oe-meta-cat', $new_cat);
-	else if ('' == $new_cat && $old_cat)
-		delete_post_meta($post_id, 'oe-meta-cat', $old_cat);
+	foreach ($input as $field => $value) {
+		$old = get_post_meta($post_id, 'oe-form-' . $field, true);
+		if ($value && '' == $old)
+			add_post_meta($post_id, 'oe-form-' . $field, $value, true );
+		else if ($value && $value != $old)
+			update_post_meta($post_id, 'oe-form-' . $field, $value);
+		else if ('' == $value && $old)
+			delete_post_meta($post_id, 'oe-form-' . $field, $old);
+	}
 }
 
 
