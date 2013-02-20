@@ -257,3 +257,112 @@ function sort_events($vars) {
 	return $vars;
 }
 add_action( 'load-edit.php', 'edit_events_load' );
+
+
+/*function oe_menu() {
+
+	add_options_page('Custom Plugin Page', 'OSI Events Settings', 'manage_options', 'osi-events', 'oe_settings_page');
+	add_action( 'admin_init', 'register_oe_settings' );
+}
+add_action('admin_menu', 'oe_menu');
+
+
+function register_oe_settings() {
+
+	register_setting( 'oe-settings-group', 'oe_public' );
+}
+
+function oe_settings_page() {
+?>
+<div>
+	<h2>My custom plugin</h2>
+	<p>Options relating to the OSI Events plugin</p>
+	<form action="options.php" method="post">
+		<?php settings_fields('oe_settings'); ?>
+		<?php do_settings_sections('osi-events'); ?> 
+		<input name="Submit" type="submit" value="<?php esc_attr_e('Save Changes'); ?>" />
+	</form>
+</div>
+
+<?php
+}
+
+function plugin_admin_init(){
+
+	register_setting('oe_settings', 'oe_settings', 'oe_settings_validate' );
+	add_settings_section('oe_settings_main', 'Plugin Settings', 'oe_settings_main_text', 'osi-events');
+	add_settings_field('oe_settings_public', 'this is parameter 2 of add_settings_field()', 'plugin_setting_string', 'osi-events', 'oe_settings_main');
+}
+add_action('admin_init', 'plugin_admin_init');
+
+function oe_settings_main_text() { ?>
+	<p>Description text</p>
+<?php
+}
+
+function plugin_setting_string() {
+	echo "<input id='oe_settings_public' name='oe_settings[text_string]' size='40' type='text' value='{$options['text_string']}' />";
+}
+
+function oe_settings_validate($input) {
+	$newinput['text_string'] = trim($input['text_string']);
+	if(!preg_match('/^[a-z0-9]{32}$/i', $newinput['text_string'])) {
+		$newinput['text_string'] = '';
+	}
+	return $newinput;
+}*/
+
+
+add_action('admin_menu', 'plugin_admin_add_page');
+function plugin_admin_add_page() {
+add_options_page('Custom Plugin Page', 'Custom Plugin Menu', 'manage_options', 'plugin', 'plugin_options_page');
+}
+
+// display the admin options page
+function plugin_options_page() {
+?>
+<div>
+<h2>My custom plugin</h2>
+Options relating to the Custom Plugin.
+<form action="options.php" method="post">
+<?php settings_fields('plugin_options'); ?>
+<?php do_settings_sections('plugin'); ?>
+ 
+<input name="Submit" type="submit" value="<?php esc_attr_e('Save Changes'); ?>" />
+</form></div>
+ 
+<?php
+}
+
+
+add_action('admin_init', 'plugin_admin_init');
+function plugin_admin_init(){
+	register_setting( 'plugin_options', 'plugin_options', 'plugin_options_validate' );
+	add_settings_section('plugin_main', 'Main Settings', 'plugin_section_text', 'plugin');
+	add_settings_field('plugin_text_string', 'Plugin Text Input', 'plugin_setting_string', 'plugin', 'plugin_main');
+}
+
+function plugin_setting_string() {
+	$options = get_option('plugin_options');
+	echo "<input id='plugin_text_string' name='plugin_options[text_string]' size='40' type='text' value='{$options['text_string']}' />";
+}
+
+
+function plugin_options_validate($input) {
+	$newinput['text_string'] = trim($input['text_string']);
+	if(!preg_match('/^[a-z0-9]{32}$/i', $newinput['text_string'])) {
+		$newinput['text_string'] = '';
+	}
+	return $input;
+}
+
+/*
+function plugin_options_validate($input) {
+	$options = get_option('plugin_options');
+	$options['text_string'] = trim($input['text_string']);
+	if(!preg_match('/^[a-z0-9]{32}$/i', $options['text_string'])) {
+	$options['text_string'] = '';
+	}
+	return $options;
+}
+*/
