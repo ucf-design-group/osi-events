@@ -1,10 +1,14 @@
-function retrieveEvents(key, start, end) {
+var vucf = "http://osi.ucf.edu/testing/vucf/";
+
+function retrieveEvents(key, start, end, from) {
+
+	var urlext = "wp-content/plugins/osi-events/retriever.php";
 
 	jQuery.ajax({
 		type: "GET",
-		data: {key: "1234", start: "0", end: "200000000000000000"},
+		data: {key: key, start: start, end: end},
 		dataType: "html",
-		url: "retriever.php",
+		url: window[from] + urlext,
 
 		beforeSend: function() {
 		},
@@ -104,7 +108,7 @@ function addEventsTwo(events) {  // Alternative method
 
 		var start = events[k]['start'];
 		var done = 0;
-		alert(start);
+		//alert(start);
 		
 		jQuery(here).find(".event").each(function() {
 			if (jQuery(this).attr('id') > start && done == 0) {
