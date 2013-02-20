@@ -11,37 +11,46 @@ License: None
 
 date_default_timezone_set('America/New_York');
 
+
+/* The following sets up the Custom Post Type for osi-events and its Custom Meta Box */
+
 function oe_cpt() {
 
 	register_post_type('osi-events', array(
 		'labels' => array(
 			'name' => 'Events',
-			'singular_name' => 'Event'),
+			'singular_name' => 'Event',
+			'add_new' => 'New Event',
+			'add_new_item' => 'Add New Event',
+			'edit_item' => 'Edit Event',
+			'new_item' => 'New Event',
+			'view_item' => 'View Event',
+			'items_archive' => 'Event Archive',
+			'search_items' => 'Search Events'),
+		'description' => 'Events compatible with both the local site and the OSI Calendar',
 		'public' => true,
 		'hierarchical' => false,
 		'supports' => array('title', 'editor'),
 		'taxonomies' => array(),
 		'has_archive' => false
 		));
+
+	register_post_type('events',array());
 }
 add_action('init', 'oe_cpt');
 
 
-
-
-
-
-
-
-
 function oe_meta_setup() {
+
 	add_action('add_meta_boxes','oe_meta_add');
 	add_action('save_post','oe_meta_save');
 }
 add_action('load-post.php','oe_meta_setup');
 add_action('load-post-new.php','oe_meta_setup');
 
+
 function oe_meta_add() {
+
 	add_meta_box (
 		'oe_meta',
 		'Event Information',
@@ -51,10 +60,11 @@ function oe_meta_add() {
 		'default');
 }
 
+
 function oe_meta() {
 
 	global $post;
-	wp_nonce_field(basename( __FILE__ ), 'oe_meta_nonce' );
+	wp_nonce_field(basename( __FILE__ ), 'oe-form-nonce' );
 	$start = get_post_meta($post->ID, 'oe-form-start', true) ? get_post_meta($post->ID, 'oe-form-start', true) : time();
 	$end = get_post_meta($post->ID, 'oe-form-end', true) ? get_post_meta($post->ID, 'oe-form-end', true) : time();
 	$loc = get_post_meta($post->ID, 'oe-form-loc', true) ? get_post_meta($post->ID, 'oe-form-loc', true) : '';
@@ -125,14 +135,16 @@ function oe_meta() {
 			<td><textarea name="oe-form-notes" id="oe-form-notes"><?php echo $notes; ?></textarea></td>
 		</tr>
 	</table>
-	<div id="oe-form-clear"></div>
+	<div id="oe-form-clear">Have questions/comments/issues concerning this form?  Please <a href="mailto:web@aj-foster.com">let me know</ad>.</div>
 	<?php
 }
 
+
 function oe_meta_save() {
+
 	global $post;
 	$post_id = $post->ID;
-	if (!isset($_POST['oe_meta_nonce']) || !wp_verify_nonce($_POST['oe_meta_nonce'], basename( __FILE__ ))) {
+	if (!isset($_POST['oe-form-nonce']) || !wp_verify_nonce($_POST['oe-form-nonce'], basename( __FILE__ ))) {
 		return $post->ID;
 	}
 
@@ -163,7 +175,9 @@ function oe_meta_save() {
 	$input['notes'] = (isset($_POST['oe-form-notes']) ? $_POST['oe-form-notes'] : '');
 
 	foreach ($input as $field => $value) {
+
 		$old = get_post_meta($post_id, 'oe-form-' . $field, true);
+
 		if ($value && '' == $old)
 			add_post_meta($post_id, 'oe-form-' . $field, $value, true );
 		else if ($value && $value != $old)
@@ -174,30 +188,53 @@ function oe_meta_save() {
 }
 
 
+/* The following creates a new column in the osi-events post listing and sorts the posts by date */
+
+function edit_event_columns($columns) {
+	$columns = array(
+		'cb' => '<input type="checkbox" />',
+		'title' => __('Event Title'),
+		'startdate' => __('Start Date'),
+		'date' => __('Date Added'),
+	);
+	return $columns;
+}
+add_filter('manage_edit-osi-events_columns','edit_event_columns') ;
 
 
+function manage_event_columns($column, $post_id) {
+	global $post;
+	switch($column) {
+		case 'startdate':
+			$start = get_post_meta( $post_id, 'oe-form-start', true );
+			if (empty( $start )) echo __( 'Unknown' );
+			else echo date('Y-m-d', $start);
+			break;
+	}
+}
+add_action( 'manage_osi-events_posts_custom_column', 'manage_event_columns', 10, 2 );
 
 
-
-// Worry about this later...
-
-function sortable_event_column($columns) {
+function sortable_events_column($columns) {
 	$columns['startdate'] = 'startdate';
 	return $columns;
 }
-add_filter( 'manage_edit-event_sortable_columns', 'sortable_event_column' );
+add_filter( 'manage_edit-osi-events_sortable_columns', 'sortable_events_column' );
 
-function edit_event_load() {
-	add_filter( 'request', 'sort_event' );
+
+function edit_events_load() {
+	add_filter( 'request', 'sort_events' );
 }
 
-function sort_event($vars) {
-	if (isset($vars['post_type']) && 'event' == $vars['post_type']) {
+
+function sort_events($vars) {
+	if (isset($vars['post_type']) && 'osi-events' == $vars['post_type']) {
+		$vars['orderby'] = 'startdate';
 		if (isset($vars['orderby']) && 'startdate' == $vars['orderby']) {
 			$vars = array_merge(
 				$vars,
 				array(
-					'meta_key' => 'event-meta-start',
+					'meta_key' => 'oe-form-start',
 					'orderby' => 'meta_value_num'
 				)
 			);
@@ -205,5 +242,4 @@ function sort_event($vars) {
 	}
 	return $vars;
 }
-add_action( 'load-edit.php', 'edit_event_load' );
-
+add_action( 'load-edit.php', 'edit_events_load' );
