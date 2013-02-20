@@ -8,7 +8,8 @@ if (isset($_GET['key']) && $_GET['key'] == 1234) {
 	$end = (isset($_GET['end'])) ? $_GET['end'] : '';
 
 	define('WP_USE_THEMES', false);
-	require_once('../../../wp-load.php');
+	//require_once('../../../wp-load.php');
+	require_once('../wp/wp-load.php');
 	header ("content-type: text/xml");
 
 	retrieveEvents($start, $end);
