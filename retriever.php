@@ -15,7 +15,7 @@ if (isset($_GET['key']) && $_GET['key'] == 1234) {
 }
 else echo "Unauthorized";
 
-function retrieveEvents($start, $end) {
+function retrieveEvents($startLimit, $endLimit) {
 
 	$returnXML = new SimpleXMLElement("<eventlisting></eventlisting>");
 
@@ -29,7 +29,7 @@ function retrieveEvents($start, $end) {
 
 		$startDate = get_post_meta($post->ID, 'oe-form-start', true);
 
-		if ($startDate > $start && $startDate < $end) {
+		if ($startDate > $startLimit && $startDate < $endLimit) {
 
 			$event = $returnXML->addChild('event');
 
@@ -43,8 +43,19 @@ function retrieveEvents($start, $end) {
 			$event->addChild('start', $start);
 
 			$end = get_post_meta($post->ID, 'oe-form-end', true);
+			$event->addChild('end', $end);
 
 			$loc = get_post_meta($post->ID, 'oe-form-loc', true);
+			$event->addChild('location', $loc);
+
+			$contact = get_post_meta($post->ID, 'oe-form-contact', true);
+			$event->addChild('contact', $contact);
+
+			$url = get_post_meta($post->ID, 'oe-form-url', true);
+			$event->addChild('url', $url);
+
+			$notes = get_post_meta($post->ID, 'oe-form-notes', true);
+			$event->addChild('notes', $notes);
 		}
 	}
 
