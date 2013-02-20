@@ -40,6 +40,20 @@ function oe_cpt() {
 add_action('init', 'oe_cpt');
 
 
+function oe_icon() {
+	?>
+	<style type="text/css" media="screen">
+	#menu-posts-osi-events .wp-menu-image {
+		background: url(<?php echo plugins_url("osi-events/rsc/calendar.png") ?>) no-repeat 6px -17px !important;
+	}
+	#menu-posts-osi-events:hover .wp-menu-image, #menu-posts-osi-events.wp-has-current-submenu .wp-menu-image {
+		background-position: 6px 7px !important;
+	}
+	</style>
+<?php }
+add_action( 'admin_head', 'oe_icon' );
+
+
 function oe_meta_setup() {
 
 	add_action('add_meta_boxes','oe_meta_add');

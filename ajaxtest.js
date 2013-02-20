@@ -59,10 +59,10 @@ function parseXML(xml) {
 		jQuery("#here").append("<br>");
 	}*/
 
-	addEvents(events);
+	addEvents2(events);
 }
 
-function addEvents(events) {
+function addEvents(events) {  // Current working: add all events occurring before those on the page, and then remove them from the list
 
 	var here = jQuery("#here");
 	var onPage = new Array();
@@ -93,5 +93,15 @@ function addEvents(events) {
 		//alert(events[0]['start']);
 		jQuery("#here").append('<div class="event" id="' + newEvt['start'] + '"><div class="title">' + newEvt['title'] + '</div></div>');
 		events.splice(0, 1);
+	}
+}
+
+function addEvents2(events) {   // Possible alternative: look for the place to put each event, one by one.
+
+	var here = jQuery("#here");
+
+	for (int i = 0; i < events.length; i++) {
+		var start = events[i]['start'];
+		alert(start);
 	}
 }
