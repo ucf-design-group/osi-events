@@ -59,7 +59,7 @@ function parseXML(xml) {
 		jQuery("#here").append("<br>");
 	}*/
 
-	addEvents2(events);
+	addEventsTwo(events);
 }
 
 function addEvents(events) {  // Current working: add all events occurring before those on the page, and then remove them from the list
@@ -96,12 +96,26 @@ function addEvents(events) {  // Current working: add all events occurring befor
 	}
 }
 
-function addEvents2(events) {   // Possible alternative: look for the place to put each event, one by one.
+function addEventsTwo(events) {  // Alternative method
 
 	var here = jQuery("#here");
 
-	for (int i = 0; i < events.length; i++) {
-		var start = events[i]['start'];
+	for (var k = 0; k < events.length; k++) { // There may be a problem with this iterator variable... any variable other than i doesn't work, and explicitly declaring anything breaks it.
+
+		var start = events[k]['start'];
+		var done = 0;
 		alert(start);
+		
+		jQuery(here).find(".event").each(function() {
+			if (jQuery(this).attr('id') > start && done == 0) {
+				jQuery(this).before('<div class="event" id="' + events[k]['start'] + '"><div class="title">' + events[k]['title'] + '</div></div>');
+				done = 1;
+			}
+		});
+
+		if (done == 0) {
+			jQuery(here).append('<div class="event" id="' + events[k]['start'] + '"><div class="title">' + events[k]['title'] + '</div></div>');
+			done = 1;
+		}
 	}
 }
