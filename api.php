@@ -1,11 +1,15 @@
 <?php
 
+$agency = "";
+$random = "";
+$key = hash("md5", $agency . $random);
+
 // Hopefully, this will be a loop for events.
 
-if (isset($_GET['key']) && $_GET['key'] == 1234) {
+if (isset($_GET['key']) && $_GET['key'] == $key) {
 
-	$start = (isset($_GET['start'])) ? $_GET['start'] : '';
-	$end = (isset($_GET['end'])) ? $_GET['end'] : '';
+	$start = (isset($_GET['start'])) ? $_GET['start'] : '0';
+	$end = (isset($_GET['end'])) ? $_GET['end'] : '-1';
 
 	define('WP_USE_THEMES', false);
 	//require_once('../../../wp-load.php');
@@ -30,7 +34,7 @@ function retrieveEvents($startLimit, $endLimit) {
 
 		$startDate = get_post_meta($post->ID, 'oe-form-start', true);
 
-		if ($startDate > $startLimit && $startDate < $endLimit) {
+		if ($startDate > $startLimit && ($startDate < $endLimit || $endLimit == "-1")) {
 
 			$event = $returnXML->addChild('event');
 
@@ -57,6 +61,8 @@ function retrieveEvents($startLimit, $endLimit) {
 
 			$notes = get_post_meta($post->ID, 'oe-form-notes', true);
 			$event->addChild('notes', $notes);
+
+			$event->addChild('agency', $agency);
 		}
 	}
 

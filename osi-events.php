@@ -99,9 +99,9 @@ function oe_meta() {
 
 	?>
 	<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css">
-	<link rel="stylesheet" href="<?php echo plugins_url("osi-events/eventform.css") ?>">
+	<link rel="stylesheet" href="<?php echo plugins_url("osi-events/rsc/eventform.css") ?>">
 	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/jquery-ui.min.js"></script>
-	<script type='text/javascript' src='<?php echo plugins_url("osi-events/eventform.js") ?>'></script>
+	<script type='text/javascript' src='<?php echo plugins_url("osi-events/rsc/eventform.js") ?>'></script>
 	<table id="oe-form-main">
 		<tr>
 			<th><label for="oe-form-startdate">Start:</label></th>
