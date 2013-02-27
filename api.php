@@ -1,8 +1,11 @@
 <?php
 
+/* This information should be filled out for each agency's implementation. */
+
 $agency = "";
-$random = "";
-$key = hash("md5", $agency . $random);
+$passcode = "";
+
+$key = hash("md5", $agency . $passcode);
 
 // Hopefully, this will be a loop for events.
 

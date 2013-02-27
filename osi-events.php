@@ -199,6 +199,18 @@ function oe_meta_save() {
 		else if ('' == $value && $old)
 			delete_post_meta($post_id, 'oe-form-' . $field, $old);
 	}
+
+	if (get_current_site()->id == 1)
+		oe_save_to_main($post->ID);
+}
+
+function oe_save_to_main($id) {
+
+	$post = get_post($id);
+	$newpost = array();
+	// Give the necessary values to $newpost and save it.  If possible, save a meta in both
+	// the main and other site with the ID of the related post.  Also, add meta for "agency"
+	// where necessary.
 }
 
 
