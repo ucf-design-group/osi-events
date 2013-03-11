@@ -188,8 +188,6 @@ function oe_meta_save($post_id, $post) {
 	$input['url'] = (isset($_POST['oe-form-url']) ? $_POST['oe-form-url'] : '');
 	$input['notes'] = (isset($_POST['oe-form-notes']) ? $_POST['oe-form-notes'] : '');
 
-	error_log(time() . " META: " . $post_id . " " . var_export($input, true) . "\n", 3, "error.txt");
-
 	foreach ($input as $field => $value) {
 
 		$old = get_post_meta($post_id, 'oe-form-' . $field, true);
@@ -264,45 +262,50 @@ add_action( 'load-edit.php', 'edit_events_load' );
 function oe_main_save($post_id, $post) {
 
 	global $blog_id;
-	$source_id = $blog_id;
+	$blogid = $blog_id;
 
-	if ($blog_id != 1) {
-		$newPost = get_post($post_id, "ARRAY_A");
-		$newPost['ID'] = get_post_meta($post->ID, 'oe-form-mainid', true) ? get_post_meta($post->ID, 'oe-form-mainid', true) : '';
-		error_log(time() . " New post: " . var_export($newPost, true) . "\n", 3, "error.txt");
-		error_log(time() . " Before switch: " . get_current_blog_id() . "\n", 3, "error.txt");
-		switch_to_blog(1);
-		error_log(time() . " After switch: " . get_current_blog_id() . "\n", 3, "error.txt");
-		$starttime = get_post_meta($post_id, 'oe-form-start', true) ? get_post_meta($post_id, 'oe-form-start', true) : 'No meta listed yet';
-		error_log(time() . " Start Meta at time of save: " . $starttime . "\n", 3, "error.txt");
-		$newID = wp_insert_post($newPost, true);
+	$syn_meta = get_post_meta($post->ID, 'oe-syndication', true) ? parseSyndication(get_post_meta($post->ID, 'oe-syndication', true)) : "none";
 
-		$meta_source = get_post_meta($newID, 'oe-form-sourceid', true) ? get_post_meta($newID, 'oe-form-sourceid', true) : '';
+	//error_log(time() . " Syn_meta: " . var_export($syn_meta, true) . "\n", 3, "error.txt");
+	
+	if ($syn_meta === "none") {
+		if ($blog_id != 1) {
+			$newPost = get_post($post_id, "ARRAY_A");
+			$newPost['ID'] = '';
 
-		if ($source_id && '' == $meta_source)
-			add_post_meta($newID, 'oe-form-sourceid', $source_id, true );
-		else if ($source_id && $source_id != $meta_source)
-			update_post_meta($newID, 'oe-form-sourceid', $source_id);
-		else if ('' == $source_id && $meta_source)
-			delete_post_meta($newID, 'oe-form-sourceid', $meta_source);
+			switch_to_blog(1);
 
-		restore_current_blog();
-		error_log(time() . " After restore: " . get_current_blog_id() . "\n", 3, "error.txt");
-		$errorString = "";
-		if (is_wp_error($newID)) {
-			$errorCodes = $newID->get_error_codes();
-			foreach ($errorCodes as $err) {
-				$errorString .= $newID->get_error_messages($err);
-			}
+			$newID = wp_insert_post($newPost, true);
+			$syndication = "1," . $newID . ";" . $blogid . ',' . $post_id;
+			add_post_meta($newID, 'oe-syndication', $syndication, true );
+
+			restore_current_blog();
+
+			add_post_meta($post_id, 'oe-syndication', $syndication, true );
 		}
-		error_log(time() . " Error String: " . $errorString . "\n", 3, "error.txt");
-		error_log("----------\n", 3, "error.txt");
-
-		if ($newID && '' == $newPost['ID'])
-			add_post_meta($post_id, 'oe-form-mainid', $newID, true );
-		else if ($newID && $newID != $newPost['ID'])
-			update_post_meta($post_id, 'oe-form-mainid', $newID);
-		else if ('' == $newID && $newPost['ID'])
-			delete_post_meta($post_id, 'oe-form-mainid', $newPost['ID']);
 	}
+
+	else
+	foreach ($syn_meta as $blog => $postid) {
+		//error_log(time() . " Foreach: " . $blog . "=>" . $postid . "\n", 3, "error.txt");
+		if ($blog_id != $blog && $blog_id != 1) {
+			//error_log(time() . " Foreach: Saving stuff! :D" . "\n", 3, "error.txt");
+			$newPost = get_post($post_id, "ARRAY_A");
+			$newPost['ID'] = $postid;
+			switch_to_blog($blog);
+			wp_insert_post($newPost); // This is an infinite loop if "&& $blog_id != 1" is removed.  You need to have a time-based restriction for this.
+			restore_current_blog();
+		}
+	}
+}
+
+
+function parseSyndication($meta) {
+
+	$return = array();
+	foreach (explode(";", $meta) as $blog) {
+		$split = explode(",", $blog);
+		$return = $return + array($split[0] => $split[1]);
+	}
+	return $return;
 }
