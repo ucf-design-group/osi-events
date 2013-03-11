@@ -264,6 +264,9 @@ function oe_main_save($post_id, $post) {
 	global $blog_id;
 	$blogid = $blog_id;
 
+	if ($post->post_type != "osi-events")
+		return;
+
 	$syn_meta = get_post_meta($post->ID, 'oe-syndication', true) ? parseSyndication(get_post_meta($post->ID, 'oe-syndication', true)) : "none";
 
 	//error_log(time() . " Syn_meta: " . var_export($syn_meta, true) . "\n", 3, "error.txt");
