@@ -6,13 +6,15 @@ Description: This plugin creates an "Events" post type and makes the events acce
 Version: 1.0
 Author: AJ Foster
 Author URI: http://aj-foster.com/
-License: None
+License: None; use as you please!
 */
 
 date_default_timezone_set('America/New_York');
 
 
-/* The following sets up the Custom Post Type for osi-events and its Custom Meta Box */
+/* The following creates the Custom Post Type for osi-events and its Custom Meta Box */
+
+/* Create the custom post type (CPT) */
 
 function oe_cpt() {
 
@@ -31,14 +33,15 @@ function oe_cpt() {
 		'public' => true,
 		'hierarchical' => false,
 		'supports' => array('title', 'editor'),
-		'taxonomies' => array(),
+		'taxonomies' => array('category'),
 		'has_archive' => false
 		));
 
-	register_post_type('events',array());
+	register_post_type('events', array());
 }
 add_action('init', 'oe_cpt');
 
+/* Add a custom icon to the dashboard menu for this post type */
 
 function oe_icon() {
 	?>
@@ -53,6 +56,7 @@ function oe_icon() {
 <?php }
 add_action( 'admin_head', 'oe_icon' );
 
+/* Add actions for meta box addition and saving */
 
 function oe_meta_setup() {
 
@@ -63,6 +67,7 @@ function oe_meta_setup() {
 add_action('load-post.php','oe_meta_setup');
 add_action('load-post-new.php','oe_meta_setup');
 
+/* Add the meta box to the post editor */
 
 function oe_meta_add() {
 
@@ -75,9 +80,22 @@ function oe_meta_add() {
 		'default');
 }
 
+/* Create the actual meta box.
+ *
+ * This meta box will be validated using a nonce field and contain information concerning the
+ * start/end times, location, contact information, URL for more information, and general notes.
+ * The box uses its own stylesheet and a javascript file which performs validation (using
+ * custom functions) and creates the jQuery datepicker for each date.
+ *
+ * The end time can be disabled (saved as "none") using a check box.
+ *
+ * All forms are named in the form oe-form-[information].
+ */
 
 function oe_meta() {
 
+	// Get current values for all of the meta
+	
 	global $post;
 	wp_nonce_field(basename( __FILE__ ), 'oe-form-nonce' );
 	$start = get_post_meta($post->ID, 'oe-form-start', true) ? get_post_meta($post->ID, 'oe-form-start', true) : time();
@@ -86,7 +104,9 @@ function oe_meta() {
 	$contact = get_post_meta($post->ID, 'oe-form-contact', true) ? get_post_meta($post->ID, 'oe-form-contact', true) : '';
 	$url = get_post_meta($post->ID, 'oe-form-url', true) ? get_post_meta($post->ID, 'oe-form-url', true) : '';
 	$notes = get_post_meta($post->ID, 'oe-form-notes', true) ? get_post_meta($post->ID, 'oe-form-notes', true) : '';
-	
+	$cat = get_post_meta($post->ID, 'oe-form-cat', true) ? get_post_meta($post->ID, 'oe-form-cat', true) : '';
+
+	// Make special arrangements for possibly disabling the end date/time fields
 
 	$checked = "checked = 'checked'";
 	$disabled = "";
@@ -97,6 +117,12 @@ function oe_meta() {
 		$style = "style='background-color:#EEEEEE'";
 		$end = $start;
 	}
+
+	// Get a list of categories
+
+	$categories = get_categories(array('parent' => 0, 'orderby' => 'name', 'hide_empty' => 0));
+
+	// Begin outputting the actual box: CSS, Scripts, then two table forms.
 
 	?>
 	<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css">
@@ -149,11 +175,38 @@ function oe_meta() {
 		</tr><tr>
 			<td><textarea name="oe-form-notes" id="oe-form-notes"><?php echo $notes; ?></textarea></td>
 		</tr>
+		<?php
+			if (count($categories) > 1) {
+		?>
+		<tr>
+			<th><label for="oe-form-cat">Category: </label>
+				<select name="oe-form-cat" id="oe-form-cat">
+					<option value="">Select a Category...</option>
+		<?php
+				foreach ($categories as $category) {
+					$name = $category->cat_name;
+					$slug = $category->slug;
+					$selected = '';
+					if ($slug == $cat)
+						$selected = 'selected="selected"';
+		?>
+					<option value="<?php echo $slug; ?>" <?php echo $selected; ?>><?php echo $name; ?></option>
+		<?php
+				}
+		?>
+				</select>
+			</th>
+		</tr>
+		<?php
+			}
+		?>
 	</table>
 	<div id="oe-form-clear">Have questions/comments/issues concerning this form?  Please <a href="mailto:web@aj-foster.com">let me know</ad>.</div>
 	<?php
 }
 
+
+/* Save the form's information on post-save */
 
 function oe_meta_save($post_id, $post) {
 
@@ -187,6 +240,7 @@ function oe_meta_save($post_id, $post) {
 	$input['contact'] = (isset($_POST['oe-form-contact']) ? $_POST['oe-form-contact'] : '');
 	$input['url'] = (isset($_POST['oe-form-url']) ? $_POST['oe-form-url'] : '');
 	$input['notes'] = (isset($_POST['oe-form-notes']) ? $_POST['oe-form-notes'] : '');
+	$input['cat'] = (isset($_POST['oe-form-cat']) ? $_POST['oe-form-cat'] : '');
 
 	foreach ($input as $field => $value) {
 
