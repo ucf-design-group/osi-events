@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: OSI Events
-Plugin URI: 
+Plugin URI: https://github.com/aj-foster/osi-events
 Description: This plugin creates an "Events" post type and makes the events accessible by the OSI Events Calendar
 Version: 1.0
 Author: AJ Foster
@@ -10,7 +10,6 @@ License: None; use as you please!
 */
 
 date_default_timezone_set('America/New_York');
-
 
 /* The following creates the Custom Post Type for osi-events and its Custom Meta Box */
 
@@ -209,6 +208,9 @@ function oe_meta() {
 /* Save the form's information on post-save */
 
 function oe_meta_save($post_id, $post) {
+
+	if ($parent_id = wp_is_post_revision($post_id)) 
+		$post_id = $parent_id;
 
 	if (!isset($_POST['oe-form-nonce']) || !wp_verify_nonce($_POST['oe-form-nonce'], basename( __FILE__ ))) {
 		return $post_id;
