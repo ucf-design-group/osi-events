@@ -31,7 +31,7 @@ function oe_cpt() {
 		'description' => 'Events compatible with both the local site and the OSI Calendar',
 		'public' => true,
 		'hierarchical' => false,
-		'supports' => array('title', 'editor'),
+		'supports' => array('title', 'editor', 'thumbnail'),
 		'taxonomies' => array('category'),
 		'has_archive' => false
 		));
